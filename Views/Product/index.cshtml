@@ -1,0 +1,152 @@
+@model List<Product>
+
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Price</th>
+        <th>Actions</th>
+    </tr>
+    @if (Model != null && Model.Any())
+    {
+        @foreach (var product in Model)
+        {
+            <tr data-id="@product.Id">
+                <td>
+                    <span class="display">@product.Name</span>
+                    <input class="edit" type="text" value="@product.Name" style="display:none;" />
+                </td>
+                <td>
+                    <span class="display">@product.Price</span>
+                    <input class="edit" type="text" value="@product.Price" style="display:none;" />
+                </td>
+                <td>
+                    <button class="edit-btn">Edit</button>
+                    <button class="save-btn" style="display:none;">Save</button>
+                    <button class="cancel-btn" style="display:none;">Cancel</button>
+                    <button class="delete-btn">Delete</button>
+                </td>
+            </tr>
+        }
+    }
+    else
+    {
+        <tr>
+            <td colspan="3">No products available.</td>
+        </tr>
+    }
+</table>
+
+<h3>Add New Product</h3>
+<form id="addProductForm">
+    <div>
+        <label for="newProductName">Name</label>
+        <input type="text" id="newProductName" name="name" required />
+    </div>
+    <div>
+        <label for="newProductPrice">Price</label>
+        <input type="text" id="newProductPrice" name="price" required />
+    </div>
+    <div>
+        <button type="submit">Add Product</button>
+    </div>
+</form>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        function bindRowEvents(row) {
+            row.find('.edit-btn').click(function () {
+                var row = $(this).closest('tr');
+                row.find('.display').hide();
+                row.find('.edit').show();
+                row.find('.edit-btn').hide();
+                row.find('.save-btn, .cancel-btn').show();
+            });
+
+            row.find('.cancel-btn').click(function () {
+                var row = $(this).closest('tr');
+                row.find('.display').show();
+                row.find('.edit').hide();
+                row.find('.edit-btn').show();
+                row.find('.save-btn, .cancel-btn').hide();
+            });
+
+            row.find('.save-btn').click(function () {
+                var row = $(this).closest('tr');
+                var id = row.data('i`d');
+                var name = row.find('input[type="text"]').eq(0).val();
+                var price = row.find('input[type="text"]').eq(1).val();
+
+                $.post('@Url.Action("UpdateProduct", "Product")', { id: id, name: name, price: price }, function (data) {
+                    if (data.success) {
+                        row.find('.display').eq(0).text(name);
+                        row.find('.display').eq(1).text(price);
+                        row.find('.display').show();
+                        row.find('.edit').hide();
+                        row.find('.edit-btn').show();
+                        row.find('.save-btn, .cancel-btn').hide();
+                    } else {
+                        alert('Failed to update the product.');
+                    }
+                });
+            });
+
+            row.find('.delete-btn').click(function () {
+                if (confirm('Are you sure you want to delete this product?')) {
+                    var row = $(this).closest('tr');
+                    var id = row.data('id');
+
+                    $.post('@Url.Action("DeleteProduct", "Product")', { id: id }, function (data) {
+                        if (data.success) {
+                            row.remove();
+                        } else {
+                            alert('Failed to delete the product.');
+                        }
+                    });
+                }
+            });
+        }
+
+        // Bind events to existing rows
+        bindRowEvents($('tr[data-id]'));
+
+        $('#addProductForm').submit(function (event) {
+            event.preventDefault();
+
+            var name = $('#newProductName').val();
+            var price = $('#newProductPrice').val();
+
+            $.post('@Url.Action("AddProduct", "Product")', { name: name, price: price }, function (data) {
+                if (data.success) {
+                    var newRow = $('<tr data-id="' + data.product.Id + '">' +
+                        '<td>' +
+                        '<span class="display">' + data.product.Name + '</span>' +
+                        '<input class="edit" type="text" value="' + data.product.Name + '" style="display:none;" />' +
+                        '</td>' +
+                        '<td>' +
+                        '<span class="display">' + data.product.Price + '</span>' +
+                        '<input class="edit" type="text" value="' + data.product.Price + '" style="display:none;" />' +
+                        '</td>' +
+                        '<td>' +
+                        '<button class="edit-btn">Edit</button>' +
+                        '<button class="save-btn" style="display:none;">Save</button>' +
+                        '<button class="cancel-btn" style="display:none;">Cancel</button>' +
+                        '<button class="delete-btn">Delete</button>' +
+                        '</td>' +
+                        '</tr>');
+
+                    $('table').append(newRow);
+
+                    // Reset the form
+                    $('#newProductName').val('');
+                    $('#newProductPrice').val('');
+
+                    // Bind events to the new row
+                    bindRowEvents(newRow);
+                } else {
+                    alert('Failed to add the product.');
+                }
+            });
+        });
+    });
+</script>
