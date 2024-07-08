@@ -1,0 +1,78 @@
+@model (List<AspNetBalanceSheet.Models.Balance>, List<AspNetBalanceSheet.Models.BalanceTransaction>)
+
+<h2>Balances</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Entry Type</th>
+            <th>Category</th>
+            <th>Account</th>
+            <th>Amount</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var balance in Model.Item1)
+        {
+            <tr>
+                <td>@balance.ID</td>
+                <td>@balance.EntryType</td>
+                <td>@balance.Category</td>
+                <td>@balance.Account</td>
+                <td>@balance.Amount.ToString("Rp #,##0.00", new System.Globalization.CultureInfo("id-ID"))</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h2>Transactions</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Date</th>
+            <th>Is Flip</th>
+            <th>Transaction Type</th>
+            <th>Account</th>
+            <th>Amount</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var transaction in Model.Item2)
+        {
+            <tr>
+                <td>@transaction.ID</td>
+                <td>@transaction.Date.ToString("dd MMMM yyyy")</td>
+                <td>@transaction.IsFlip</td>
+                <td>@transaction.TransactionType</td>
+                <td>@transaction.Account</td>
+                <td>@transaction.Amount.ToString("Rp #,##0.00", new System.Globalization.CultureInfo("id-ID"))</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h2>Create Transaction</h2>
+<form asp-action="CreateTransaction" method="post">
+    <div class="form-group">
+        <label>Date</label>
+        <input type="date" name="Date" class="form-control" required />
+    </div>
+    <div class="form-group">
+        <label>Is Flip</label>
+        <input type="checkbox" name="IsFlip" class="" />
+    </div>
+    <div class="form-group">
+        <label>Transfer From</label>
+        <input type="text" name="TransferFrom" class="form-control" required />
+    </div>
+    <div class="form-group">
+        <label>Transfer To</label>
+        <input type="text" name="TransferTo" class="form-control" required />
+    </div>
+    <div class="form-group">
+        <label>Amount</label>
+        <input type="number" step="1000" name="Amount" class="form-control" required />
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
